@@ -7,8 +7,9 @@ from .search import FileSearcher
 @click.option('--path', default='.', help='Search path (default: current directory)')
 @click.option('--content', '-c', is_flag=True, help='Search file contents instead of names')
 @click.option('--regex', '-r', is_flag=True, help='Use regex pattern for content search')
+@click.option('--ext', '-e', multiple=True, help='Filter by file extensions (e.g. -e py -e js)')
 @click.version_option()
-def main(pattern, path, content, regex):
+def main(pattern, path, content, regex, ext):
     """LocalSeek - Find files locally"""
     if not pattern:
         click.echo("LocalSeek v0.1.0")
@@ -16,9 +17,10 @@ def main(pattern, path, content, regex):
         return
 
     searcher = FileSearcher(path)
+    ext_filter = list(ext) if ext else None
 
     if content:
-        results = searcher.search_content(pattern, use_regex=regex)
+        results = searcher.search_content(pattern, use_regex=regex, file_ext_filter=ext_filter)
         if results:
             click.echo(f"Found {len(results)} matches:")
             for file_path, line_num, line in results:
@@ -26,7 +28,7 @@ def main(pattern, path, content, regex):
         else:
             click.echo("No content matches found.")
     else:
-        results = searcher.search_by_name(pattern)
+        results = searcher.search_by_name(pattern, file_ext_filter=ext_filter)
         if results:
             click.echo(f"Found {len(results)} files:")
             for result in results:
