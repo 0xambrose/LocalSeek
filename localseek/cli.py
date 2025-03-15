@@ -1,5 +1,6 @@
 import click
 from .search import FileSearcher
+from .highlight import Highlighter
 
 
 @click.command()
@@ -8,8 +9,9 @@ from .search import FileSearcher
 @click.option('--content', '-c', is_flag=True, help='Search file contents instead of names')
 @click.option('--regex', '-r', is_flag=True, help='Use regex pattern for content search')
 @click.option('--ext', '-e', multiple=True, help='Filter by file extensions (e.g. -e py -e js)')
+@click.option('--no-highlight', is_flag=True, help='Disable syntax highlighting')
 @click.version_option()
-def main(pattern, path, content, regex, ext):
+def main(pattern, path, content, regex, ext, no_highlight):
     """LocalSeek - Find files locally"""
     if not pattern:
         click.echo("LocalSeek v0.1.0")
@@ -24,7 +26,11 @@ def main(pattern, path, content, regex, ext):
         if results:
             click.echo(f"Found {len(results)} matches:")
             for file_path, line_num, line in results:
-                click.echo(f"{file_path}:{line_num} {line}")
+                if not no_highlight:
+                    highlighted_line = Highlighter.highlight_text(line, pattern, use_regex=regex)
+                    click.echo(f"{file_path}:{line_num} {highlighted_line}")
+                else:
+                    click.echo(f"{file_path}:{line_num} {line}")
         else:
             click.echo("No content matches found.")
     else:
